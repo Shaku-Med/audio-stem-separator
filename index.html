@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Stem Separator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 min-h-screen p-5 transition-colors duration-200">
+    <div class="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden transition-colors duration-200">
+        <div class="bg-primary-600 dark:bg-primary-800 text-white p-8 text-center transition-colors duration-200">
+            <h1 class="text-4xl font-bold mb-2">Audio Stem Separator</h1>
+            <p class="text-primary-100 dark:text-primary-200">Upload your audio file and get separated stems: vocals, drums, bass, and more!</p>
+        </div>
+
+        <div class="p-8">
+            <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-8 text-center mb-6 hover:border-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all" id="uploadSection">
+                <div>
+                    <h3 class="text-xl font-semibold mb-2 dark:text-white">Choose Your Audio File</h3>
+                    <p class="text-gray-600 dark:text-gray-300 mb-4">Drag and drop or click to select</p>
+                    <input type="file" id="fileInput" class="hidden" accept="audio/*">
+                    <button class="bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-lg font-medium transition-colors" id="uploadBtn" onclick="document.getElementById('fileInput').click()">
+                        Select Audio File
+                    </button>
+                    <p class="mt-4 text-sm text-gray-600 dark:text-gray-400">
+                        Supported: MP3, WAV, FLAC, M4A, AAC, OGG
+                    </p>
+                </div>
+            </div>
+
+            <div class="hidden" id="progressSection">
+                <h3 class="text-xl font-semibold mb-4 dark:text-white">Processing Your Audio...</h3>
+                <div class="w-full h-5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                    <div class="h-full bg-primary-600 transition-all duration-300" id="progressFill"></div>
+                </div>
+                <div class="text-center mt-2 font-medium dark:text-gray-300" id="statusText">Starting...</div>
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mt-4 text-center hidden" id="queueStatus">
+                    <div class="flex justify-center gap-4 mb-2 font-medium">
+                        <span class="bg-gray-200 dark:bg-gray-600 px-3 py-1 rounded dark:text-gray-200">Position in queue: <span id="queuePosition">-</span></span>
+                        <span class="bg-gray-200 dark:bg-gray-600 px-3 py-1 rounded dark:text-gray-200">Total in queue: <span id="queueTotal">-</span></span>
+                    </div>
+                    <div class="text-gray-600 dark:text-gray-300 text-sm" id="queueMessage"></div>
+                </div>
+            </div>
+
+            <div class="hidden" id="resultsSection">
+                <h3 class="text-xl font-semibold mb-4 dark:text-white">Your Stems Are Ready!</h3>
+                <button class="bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-lg font-medium transition-colors mb-6" id="downloadAllBtn">
+                    Download All Stems (ZIP)
+                </button>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4" id="stemsGrid">
+                </div>
+            </div>
+
+            <div id="messageArea"></div>
+
+            <div class="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg mt-6 transition-colors duration-200">
+                <h3 class="text-xl font-semibold mb-4 dark:text-white">How It Works</h3>
+                <p class="mb-4 dark:text-gray-300">This tool uses advanced AI models to separate your audio into individual stems:</p>
+                <ul class="list-disc pl-6 mb-4 dark:text-gray-300">
+                    <li><strong>Vocals:</strong> Lead and background vocals</li>
+                    <li><strong>Drums:</strong> Kick, snare, hi-hats, cymbals</li>
+                    <li><strong>Bass:</strong> Bass guitar, sub-bass frequencies</li>
+                    <li><strong>Other:</strong> Guitar, piano, synths, and other instruments</li>
+                </ul>
+                
+                <h3 class="text-xl font-semibold mt-6 mb-4 dark:text-white">Supported Formats</h3>
+                <div class="flex flex-wrap gap-2">
+                    <span class="bg-gray-200 dark:bg-gray-600 px-3 py-1 rounded text-sm font-medium dark:text-gray-200">MP3</span>
+                    <span class="bg-gray-200 dark:bg-gray-600 px-3 py-1 rounded text-sm font-medium dark:text-gray-200">WAV</span>
+                    <span class="bg-gray-200 dark:bg-gray-600 px-3 py-1 rounded text-sm font-medium dark:text-gray-200">FLAC</span>
+                    <span class="bg-gray-200 dark:bg-gray-600 px-3 py-1 rounded text-sm font-medium dark:text-gray-200">M4A</span>
+                    <span class="bg-gray-200 dark:bg-gray-600 px-3 py-1 rounded text-sm font-medium dark:text-gray-200">AAC</span>
+                    <span class="bg-gray-200 dark:bg-gray-600 px-3 py-1 rounded text-sm font-medium dark:text-gray-200">OGG</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = `${window.location.protocol}//${window.location.hostname}:8000`;
+
+        let currentTaskId = null;
+        let pollInterval = null;
+
+        // DOM elements
+        const fileInput = document.getElementById('fileInput');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const uploadSection = document.getElementById('uploadSection');
+        const progressSection = document.getElementById('progressSection');
+        const resultsSection = document.getElementById('resultsSection');
+        const progressFill = document.getElementById('progressFill');
+        const statusText = document.getElementById('statusText');
+        const messageArea = document.getElementById('messageArea');
+        const downloadAllBtn = document.getElementById('downloadAllBtn');
+        const stemsGrid = document.getElementById('stemsGrid');
+
+        // Stem icons
+        const stemIcons = {
+            vocals: 'V',
+            drums: 'D',
+            bass: 'B',
+            other: 'O',
+            guitar: 'G',
+            piano: 'P'
+        };
+
+        // File input change handler
+        fileInput.addEventListener('change', handleFileSelect);
+
+        // Drag and drop handlers
+        uploadSection.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadSection.classList.add('dragover');
+        });
+
+        uploadSection.addEventListener('dragleave', () => {
+            uploadSection.classList.remove('dragover');
+        });
+
+        uploadSection.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadSection.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                handleFileSelect();
+            }
+        });
+
+        // Download all button handler
+        downloadAllBtn.addEventListener('click', () => {
+            if (currentTaskId) {
+                window.open(`${API_BASE}/download/${currentTaskId}`, '_blank');
+            }
+        });
+
+        function handleFileSelect() {
+            const file = fileInput.files[0];
+            
+            if (!file) return;
+            
+            // Validate file type
+            const validTypes = ['audio/mpeg', 'audio/wav', 'audio/flac', 'audio/mp4', 'audio/aac', 'audio/ogg'];
+            const validExtensions = ['.mp3', '.wav', '.flac', '.m4a', '.aac', '.ogg'];
+            
+            const isValidType = validTypes.includes(file.type) || 
+                              validExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+            
+            if (!isValidType) {
+                showMessage('Please select a valid audio file (MP3, WAV, FLAC, M4A, AAC, OGG)', 'error');
+                return;
+            }
+            
+            uploadFile(file);
+        }
+
+        async function uploadFile(file) {
+            try {
+                // Show progress section
+                uploadSection.style.display = 'none';
+                progressSection.style.display = 'block';
+                resultsSection.style.display = 'none';
+                clearMessages();
+                
+                // Reset progress
+                updateProgress(0, 'Uploading file...');
+                
+                // Create form data
+                const formData = new FormData();
+                formData.append('file', file);
+                
+                // Upload file
+                const response = await fetch(`${API_BASE}/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Upload failed');
+                }
+                
+                const result = await response.json();
+                currentTaskId = result.task_id;
+                
+                // Show queue status if task is queued
+                if (result.status === 'queued') {
+                    document.getElementById('queueStatus').style.display = 'block';
+                    updateQueueStatus(result.queue_position);
+                }
+                
+                // Start polling for progress
+                startPolling();
+                
+            } catch (error) {
+                console.error('Upload error:', error);
+                showMessage(`Upload failed: ${error.message}`, 'error');
+                resetToUpload();
+            }
+        }
+
+        function startPolling() {
+            updateProgress(5, 'Processing audio...');
+            
+            pollInterval = setInterval(async () => {
+                try {
+                    // Get task status
+                    const statusResponse = await fetch(`${API_BASE}/status/${currentTaskId}`);
+                    if (!statusResponse.ok) {
+                        throw new Error('Failed to get status');
+                    }
+                    const status = await statusResponse.json();
+                    
+                    // Get queue status
+                    const queueResponse = await fetch(`${API_BASE}/queue/status`);
+                    if (queueResponse.ok) {
+                        const queueStatus = await queueResponse.json();
+                        updateQueueStatus(status.queue_position, queueStatus.queue_length);
+                    }
+                    
+                    // Update progress
+                    updateProgress(status.progress, getStatusMessage(status.status, status.progress));
+                    
+                    if (status.status === 'completed') {
+                        clearInterval(pollInterval);
+                        showResults(status.stems);
+                    } else if (status.status === 'failed') {
+                        clearInterval(pollInterval);
+                        showMessage(`Processing failed: ${status.error || 'Unknown error'}`, 'error');
+                        resetToUpload();
+                    }
+                    
+                } catch (error) {
+                    console.error('Polling error:', error);
+                    clearInterval(pollInterval);
+                    showMessage(`Status check failed: ${error.message}`, 'error');
+                    resetToUpload();
+                }
+            }, 2000);
+        }
+
+        function updateProgress(percentage, message) {
+            progressFill.style.width = `${percentage}%`;
+            statusText.textContent = message;
+        }
+
+        function updateQueueStatus(position, total) {
+            const queuePosition = document.getElementById('queuePosition');
+            const queueTotal = document.getElementById('queueTotal');
+            const queueMessage = document.getElementById('queueMessage');
+            
+            if (position) {
+                queuePosition.textContent = position;
+                queueTotal.textContent = total || '-';
+                
+                if (position === 1) {
+                    queueMessage.textContent = 'You are next in line!';
+                } else {
+                    queueMessage.textContent = `Estimated wait time: ${(position - 1) * 2} minutes`;
+                }
+            } else {
+                document.getElementById('queueStatus').style.display = 'none';
+            }
+        }
+
+        function getStatusMessage(status, progress) {
+            switch (status) {
+                case 'queued':
+                    return 'Waiting in queue...';
+                case 'processing':
+                    if (progress < 20) return 'Loading audio file...';
+                    if (progress < 50) return 'Analyzing audio structure...';
+                    if (progress < 80) return 'Separating stems...';
+                    if (progress < 100) return 'Finalizing stems...';
+                    return 'Almost done...';
+                case 'completed':
+                    return 'Separation complete!';
+                case 'failed':
+                    return 'Processing failed';
+                default:
+                    return 'Processing...';
+            }
+        }
+
+        function showResults(stems) {
+            progressSection.style.display = 'none';
+            resultsSection.style.display = 'block';
+            
+            showMessage('Audio separation completed successfully!', 'success');
+            
+            stemsGrid.innerHTML = '';
+            
+            if (stems && stems.length > 0) {
+                stems.forEach(stemPath => {
+                    const stemName = extractStemName(stemPath);
+                    const stemCard = createStemCard(stemName);
+                    stemsGrid.appendChild(stemCard);
+                });
+            } else {
+                const defaultStems = ['vocals', 'drums', 'bass', 'other'];
+                defaultStems.forEach(stemName => {
+                    const stemCard = createStemCard(stemName);
+                    stemsGrid.appendChild(stemCard);
+                });
+            }
+        }
+
+        function extractStemName(stemPath) {
+            // Extract stem name from file path
+            const fileName = stemPath.split('/').pop().split('\\').pop();
+            const stemName = fileName.replace('.wav', '').toLowerCase();
+            return stemName;
+        }
+
+        function createStemCard(stemName) {
+            const card = document.createElement('div');
+            card.className = 'bg-gray-50 dark:bg-gray-700 rounded-lg p-5 text-center hover:-translate-y-1 hover:shadow-md transition-all';
+            
+            const icon = stemIcons[stemName] || 'S';
+            
+            card.innerHTML = `
+                <div class="text-4xl mb-2 dark:text-white">${icon}</div>
+                <div class="font-semibold mb-4 capitalize dark:text-white">${stemName}</div>
+                <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors" onclick="downloadStem('${stemName}')">
+                    Download
+                </button>
+            `;
+            
+            return card;
+        }
+
+        function downloadStem(stemName) {
+            if (currentTaskId) {
+                window.open(`${API_BASE}/download/${currentTaskId}/${stemName}`, '_blank');
+            }
+        }
+
+        function showMessage(message, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = type === 'error' 
+                ? 'bg-red-100 dark:bg-red-900/50 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-200 px-4 py-3 rounded-lg mb-4' 
+                : 'bg-green-100 dark:bg-green-900/50 border border-green-400 dark:border-green-700 text-green-700 dark:text-green-200 px-4 py-3 rounded-lg mb-4';
+            messageDiv.textContent = message;
+            
+            messageArea.innerHTML = '';
+            messageArea.appendChild(messageDiv);
+            
+            // Auto-hide success messages after 5 seconds
+            if (type === 'success') {
+                setTimeout(() => {
+                    messageDiv.remove();
+                }, 5000);
+            }
+        }
+
+        function clearMessages() {
+            messageArea.innerHTML = '';
+        }
+
+        function resetToUpload() {
+            uploadSection.style.display = 'block';
+            progressSection.style.display = 'none';
+            resultsSection.style.display = 'none';
+            document.getElementById('queueStatus').style.display = 'none';
+            
+            // Clear file input
+            fileInput.value = '';
+            
+            // Clear task ID
+            currentTaskId = null;
+            
+            // Clear polling
+            if (pollInterval) {
+                clearInterval(pollInterval);
+                pollInterval = null;
+            }
+        }
+
+        // Add a "New Upload" button to results section
+        function addNewUploadButton() {
+            const newUploadBtn = document.createElement('button');
+            newUploadBtn.className = 'upload-btn';
+            newUploadBtn.textContent = '🔄 Process Another File';
+            newUploadBtn.style.marginTop = '20px';
+            newUploadBtn.onclick = () => {
+                resetToUpload();
+                // Cleanup old task
+                if (currentTaskId) {
+                    fetch(`${API_BASE}/cleanup/${currentTaskId}`, { method: 'DELETE' })
+                        .catch(err => console.log('Cleanup error:', err));
+                }
+            };
+            
+            resultsSection.appendChild(newUploadBtn);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check if API is running
+            fetch(`${API_BASE}/`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log('API Status:', data);
+                    if (data.demucs_available) {
+                        showMessage('Advanced AI separation ready!', 'success');
+                    } else {
+                        showMessage('Using basic separation mode. Install demucs for better results.', 'info');
+                    }
+                })
+                .catch(error => {
+                    console.error('API connection error:', error);
+                    showMessage('Cannot connect to API. Make sure the server is running on localhost:8000', 'error');
+                });
+        });
+
+        // Theme detection and management
+        function initTheme() {
+            // Check for saved theme preference
+            const savedTheme = localStorage.getItem('theme');
+            
+            // Check system preference
+            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            
+            // Apply theme
+            if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+            
+            // Listen for system theme changes
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+                if (!localStorage.getItem('theme')) {
+                    if (e.matches) {
+                        document.documentElement.classList.add('dark');
+                    } else {
+                        document.documentElement.classList.remove('dark');
+                    }
+                }
+            });
+        }
+
+        // Initialize theme
+        initTheme();
+    </script>
+</body>
+</html>
